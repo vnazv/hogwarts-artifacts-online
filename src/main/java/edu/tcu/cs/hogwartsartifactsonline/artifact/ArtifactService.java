@@ -1,6 +1,7 @@
 package edu.tcu.cs.hogwartsartifactsonline.artifact;
 
 import edu.tcu.cs.hogwartsartifactsonline.artifact.utils.IdWorker;
+import edu.tcu.cs.hogwartsartifactsonline.system.exception.ObjectNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -14,17 +15,18 @@ public class ArtifactService {
 
     private final IdWorker idWorker;
 
+
     public ArtifactService(ArtifactRepository artifactRepository, IdWorker idWorker) {
         this.artifactRepository = artifactRepository;
         this.idWorker = idWorker;
     }
 
-    public Artifact findById(String artifactId){
+    public Artifact findById(String artifactId) {
         return this.artifactRepository.findById(artifactId)
-                .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
+                .orElseThrow(() -> new ObjectNotFoundException("artifact", artifactId));
     }
 
-    public List<Artifact> findAll(){
+    public List<Artifact> findAll() {
         return this.artifactRepository.findAll();
     }
 
@@ -33,7 +35,7 @@ public class ArtifactService {
         return this.artifactRepository.save(newArtifact);
     }
 
-    public Artifact update(String artifactId, Artifact update){
+    public Artifact update(String artifactId, Artifact update) {
         return this.artifactRepository.findById(artifactId)
                 .map(oldArtifact -> {
                     oldArtifact.setName(update.getName());
@@ -41,12 +43,13 @@ public class ArtifactService {
                     oldArtifact.setImageUrl(update.getImageUrl());
                     return this.artifactRepository.save(oldArtifact);
                 })
-                .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
+                .orElseThrow(() -> new ObjectNotFoundException("artifact", artifactId));
     }
 
-    public void delete(String artifactId){
-        Artifact artifact = this.artifactRepository.findById(artifactId)
-                .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
+    public void delete(String artifactId) {
+        this.artifactRepository.findById(artifactId)
+                .orElseThrow(() -> new ObjectNotFoundException("artifact", artifactId));
         this.artifactRepository.deleteById(artifactId);
     }
+
 }

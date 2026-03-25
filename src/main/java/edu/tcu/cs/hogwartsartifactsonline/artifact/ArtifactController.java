@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1/artifacts")
+@RequestMapping("${api.endpoint.base-url}/artifacts")
 public class ArtifactController {
 
     private final ArtifactService artifactService;
@@ -20,6 +20,7 @@ public class ArtifactController {
     private final ArtifactToArtifactDtoConverter artifactToArtifactDtoConverter;
 
     private final ArtifactDtoToArtifactConverter artifactDtoToArtifactConverter;
+
 
     public ArtifactController(ArtifactService artifactService, ArtifactToArtifactDtoConverter artifactToArtifactDtoConverter, ArtifactDtoToArtifactConverter artifactDtoToArtifactConverter) {
         this.artifactService = artifactService;
@@ -32,13 +33,12 @@ public class ArtifactController {
         Artifact foundArtifact = this.artifactService.findById(artifactId);
         ArtifactDto artifactDto = this.artifactToArtifactDtoConverter.convert(foundArtifact);
         return new Result(true, StatusCode.SUCCESS, "Find One Success", artifactDto);
-
     }
 
     @GetMapping
     public Result findAllArtifacts(){
         List<Artifact> foundArtifacts = this.artifactService.findAll();
-        //Convert foundArtifacts to a list of artifactDtos
+        // Convert foundArtifacts to a list of artifactDtos
         List<ArtifactDto> artifactDtos = foundArtifacts.stream()
                 .map(this.artifactToArtifactDtoConverter::convert)
                 .collect(Collectors.toList());
@@ -47,11 +47,11 @@ public class ArtifactController {
 
     @PostMapping
     public Result addArtifact(@Valid @RequestBody ArtifactDto artifactDto){
-        //Convert artifactDto to artifact
+        // Convert artifactDto to artifact
         Artifact newArtifact = this.artifactDtoToArtifactConverter.convert(artifactDto);
         Artifact savedArtifact = this.artifactService.save(newArtifact);
         ArtifactDto savedArtifactDto = this.artifactToArtifactDtoConverter.convert(savedArtifact);
-        return new Result(true, StatusCode.SUCCESS, "Add Success", savedArtifactDto);
+        return new Result(true, StatusCode.SUCCESS, "Add Success", savedArtifactDto) ;
     }
 
     @PutMapping("/{artifactId}")
@@ -67,4 +67,5 @@ public class ArtifactController {
         this.artifactService.delete(artifactId);
         return new Result(true, StatusCode.SUCCESS, "Delete Success");
     }
+
 }
