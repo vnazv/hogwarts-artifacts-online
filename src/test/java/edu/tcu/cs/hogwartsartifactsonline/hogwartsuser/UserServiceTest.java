@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,9 @@ class UserServiceTest {
 
     @Mock
     UserRepository userRepository;
+
+    @Mock
+    PasswordEncoder passwordEncoder;
 
     @InjectMocks
     UserService userService;
@@ -76,7 +80,7 @@ class UserServiceTest {
         // Then. Assert expected outcomes.
         assertThat(actualUsers.size()).isEqualTo(this.hogwartsUsers.size());
 
-        // Verify userRepository.findAll() is called exactly once.
+        // Verify userRepository. findAll() is called exactly once.
         verify(this.userRepository, times(1)).findAll();
     }
 
@@ -92,7 +96,7 @@ class UserServiceTest {
 
         given(this.userRepository.findById(1)).willReturn(Optional.of(u)); // Define the behavior of the mock object.
 
-        // When. Act on the target behavior. Act steps should cover the method to be tested.
+        // When. Act on the target behavior. Act steps should cover method to be tested.
         HogwartsUser returnedUser = this.userService.findById(1);
 
         // Then. Assert expected outcomes.
@@ -106,15 +110,15 @@ class UserServiceTest {
 
     @Test
     void testFindByIdNotFound() {
-        // Given
+        // Given.
         given(this.userRepository.findById(Mockito.any(Integer.class))).willReturn(Optional.empty());
 
-        // When
+        // When.
         Throwable thrown = catchThrowable(() -> {
             HogwartsUser returnedUser = this.userService.findById(1);
         });
 
-        // Then
+        // Then.
         assertThat(thrown)
                 .isInstanceOf(ObjectNotFoundException.class)
                 .hasMessage("Could not find user with Id 1 :(");
@@ -123,19 +127,20 @@ class UserServiceTest {
 
     @Test
     void testSaveSuccess() {
-        // Given
+        // Given.
         HogwartsUser newUser = new HogwartsUser();
         newUser.setUsername("lily");
         newUser.setPassword("123456");
         newUser.setEnabled(true);
         newUser.setRoles("user");
 
+        given(this.passwordEncoder.encode(newUser.getPassword())).willReturn("Encoded Password");
         given(this.userRepository.save(newUser)).willReturn(newUser);
 
-        // When
+        // When.
         HogwartsUser returnedUser = this.userService.save(newUser);
 
-        // Then
+        // Then.
         assertThat(returnedUser.getUsername()).isEqualTo(newUser.getUsername());
         assertThat(returnedUser.getPassword()).isEqualTo(newUser.getPassword());
         assertThat(returnedUser.isEnabled()).isEqualTo(newUser.isEnabled());
@@ -145,7 +150,7 @@ class UserServiceTest {
 
     @Test
     void testUpdateSuccess() {
-        // Given
+        // Given.
         HogwartsUser oldUser = new HogwartsUser();
         oldUser.setId(1);
         oldUser.setUsername("john");
@@ -162,10 +167,10 @@ class UserServiceTest {
         given(this.userRepository.findById(1)).willReturn(Optional.of(oldUser));
         given(this.userRepository.save(oldUser)).willReturn(oldUser);
 
-        // When
+        // When.
         HogwartsUser updatedUser = this.userService.update(1, update);
 
-        // Then
+        // Then.
         assertThat(updatedUser.getId()).isEqualTo(1);
         assertThat(updatedUser.getUsername()).isEqualTo(update.getUsername());
         verify(this.userRepository, times(1)).findById(1);
@@ -174,7 +179,7 @@ class UserServiceTest {
 
     @Test
     void testUpdateNotFound() {
-        // Given
+        // Given.
         HogwartsUser update = new HogwartsUser();
         update.setUsername("john - update");
         update.setPassword("123456");
@@ -183,12 +188,12 @@ class UserServiceTest {
 
         given(this.userRepository.findById(1)).willReturn(Optional.empty());
 
-        // When
+        // When.
         Throwable thrown = assertThrows(ObjectNotFoundException.class, () -> {
             this.userService.update(1, update);
         });
 
-        // Then
+        // Then.
         assertThat(thrown)
                 .isInstanceOf(ObjectNotFoundException.class)
                 .hasMessage("Could not find user with Id 1 :(");
@@ -197,7 +202,7 @@ class UserServiceTest {
 
     @Test
     void testDeleteSuccess() {
-        // Given
+        // Given.
         HogwartsUser user = new HogwartsUser();
         user.setId(1);
         user.setUsername("john");
@@ -208,24 +213,24 @@ class UserServiceTest {
         given(this.userRepository.findById(1)).willReturn(Optional.of(user));
         doNothing().when(this.userRepository).deleteById(1);
 
-        // When
+        // When.
         this.userService.delete(1);
 
-        // Then
+        // Then.
         verify(this.userRepository, times(1)).deleteById(1);
     }
 
     @Test
     void testDeleteNotFound() {
-        // Given
+        // Given.
         given(this.userRepository.findById(1)).willReturn(Optional.empty());
 
-        // When
+        // When.
         Throwable thrown = assertThrows(ObjectNotFoundException.class, () -> {
             this.userService.delete(1);
         });
 
-        // Then
+        // Then.
         assertThat(thrown)
                 .isInstanceOf(ObjectNotFoundException.class)
                 .hasMessage("Could not find user with Id 1 :(");
